@@ -3,21 +3,65 @@
 This project models a circuit consisting of a resistor, inductor, and capacitor otherwise known as a RLC circuit. The goal of this project was to simulate a driven RLC circuit and compare the numerical frequency response with the theoretical response. 
 ## Mathematical Model 
 The differential equation that governs this circuit is: 
-Lq'' + Rq' + (1/C)q = V(t). Here R represents a fixed resistor value, L represents a fixed inductance value, and C represents a fixed capacitance value. V is the voltage source function and represents some externtal voltage source being applied to the circuit. q(t) and i(t) represent the charge and current, respectively, at any given time t. 
+[
+Lq''(t)+Rq'(t)+\frac{1}{C}q(t)=V(t),
+]
+where:
+(R) is the resistance,
+(L) is the inductance,
+(C) is the capacitance,
+(V(t)) is the external voltage source,
+(q(t)) is the charge stored in the capacitor, and
+(i(t)=q'(t)) is the current through the circuit.
+
 This model makes a couple of assumptions. The first being that we assume that each component behaves ideally. Secondly, we assume that the system exhibits lumped-circuit behavior meaning that each component can be represented by a single number. Next, we assume that there are no parasitic effects such as resistors having a tiny inductance, capacitors having small internal resistance and inducatance, and inductors having winding resistance and stray capacitance. Finally, the differential equation was derived assiming that Kirchoff's rule hold exactly. 
 ## Numerical Approach
 In order to apply the solve_ivp solver to numerically approximate a solution to the differential equation, I had to convert the original differential equation into a system of differential equations. Using the fact that the charge and current through the system are enough to describe the system adequately, I rewrote the differential equation into the system of equations:
-dq/dt = i 
-didt = 1/L * (voltage_source_function - (R * i) - ((1/C) * q))
+[
+\frac{dq}{dt}=i
+]
+
+and 
+[
+\frac{1}{L}
+\left(
+V(t)-Ri-\frac{q}{C}
+\right).
+]
+
 The steady-state amplitude was estimated using the fact that steady-state charge and current are approximately sinusoidal and so we can estimate the amplitude using the approximation: 
-I_estimated = (i_max - i_min) / 2
-where i_max and i_min represents the maximum and minimum current values, respectively, within a selected measurement window. In order to get an error between the theoretical and numerical solutions to the differential equation, I had to make sure that I only used values where the transient-state of the approximated solution died off. 
+
+[
+\frac{i_{\max}-i_{\min}}{2},
+]
+
+where (i_{\max}) and (i_{\min}) represents the maximum and minimum current values, respectively, within a selected measurement window. In order to get an error between the theoretical and numerical solutions to the differential equation, I had to make sure that I only used values where the transient-state of the approximated solution died off. 
 ## Results
-The resonant frequency was predicted theoretically by using the equation: 
-I_theoretical = V0 / np.sqrt(R**2 + ((inductive_resistance - capacitive_reactance)**2))
-Inductive resistance is represented by the quantity omega*L and the capacitive reactance is represented by the quanity 1/(omega*C). omega represents the frequency of the forcing function. Then the resonant frequency can be calculated by setting the inductive resistance and capacitive reactance equal to each other and solving for omega. Doing so, we see that the resonant frequency is 
-1/sqrt(L*C)
-The numerical frequency-response curve matched the analytical curve almost exactly, with a maximum error observed when omega is 20.33 rad/s which is associated to an error of 0.0213. Increasing the sampling density, reduced the error and visually, the numerical curve approached the theoretical curve significantly. Changing the values for the resistor, inductor, or capacitor changed the curve in various ways. The first being that the resonant frequency value changed, leading to different peak amplitude values being observed. Second, the point at which most of the transient values died off was shifted to the left or right.
+For a sinusoidal voltage source with amplitude (V_0) and angular frequency (\omega), the theoretical steady-state current amplitude is
+
+[
+\frac{V_0}
+{\sqrt{
+R^2+
+\left(
+\omega L-\frac{1}{\omega C}
+\right)^2
+}}.
+]
+The quantity (\omega L) is the inductive reactance, while (1/(\omega C)) is the capacitive reactance.
+The current amplitude is maximized when the two reactances are equal:
+[
+\omega L=\frac{1}{\omega C}.
+]
+Solving for (\omega) gives the resonant angular frequency
+[
+\omega_0=\frac{1}{\sqrt{LC}}.
+]
+
+The numerical frequency-response curve matched the analytical curve closely. The largest observed error was approximately (0.0213), occurring near (\omega=20.33\ \text{rad/s}).
+Increasing the number of sampled frequencies reduced the apparent error and caused the numerical frequency-response curve to align more closely with the theoretical curve.
+Changing (R), (L), and (C) affected the response in different ways. Changing (L) or (C) shifted the resonant frequency, while changing (R) affected the height and sharpness of the resonance peak. The component values also affected how quickly the transient portion of the solution decayed.
+
 The numerical and theoretical frequency-response curves where R = 6, L = 1, C = 0.005, V(t) = 8cos(omega*t) are shown below. 
 ![Numerical and theoretical frequency-response curves](images/Frequency_Response_Curves.png)
 ## Reflection & Limitations
